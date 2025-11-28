@@ -1,19 +1,17 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HomeScreen from "@/screens/HomeScreen";
-import DetailScreen from "@/screens/DetailScreen";
+import BeachesScreen from "@/screens/BeachesScreen";
 import { HeaderTitle } from "@/components/HeaderTitle";
 import { useTheme } from "@/hooks/useTheme";
 import { getCommonScreenOptions } from "@/navigation/screenOptions";
 
-export type HomeStackParamList = {
-  Home: undefined;
-  Detail: undefined;
+export type BeachesStackParamList = {
+  Beaches: undefined;
 };
 
-const Stack = createNativeStackNavigator<HomeStackParamList>();
+const Stack = createNativeStackNavigator<BeachesStackParamList>();
 
-export default function HomeStackNavigator() {
+export default function BeachesStackNavigator() {
   const { theme, isDark } = useTheme();
 
   return (
@@ -23,16 +21,11 @@ export default function HomeStackNavigator() {
       }}
     >
       <Stack.Screen
-        name="Home"
-        component={HomeScreen}
+        name="Beaches"
+        component={BeachesScreen}
         options={{
-          headerTitle: () => <HeaderTitle title="My App" />,
+          headerTitle: () => <HeaderTitle title="India Explorer" />,
         }}
-      />
-      <Stack.Screen
-        name="Detail"
-        component={DetailScreen}
-        options={{ headerTitle: "Detail" }}
       />
     </Stack.Navigator>
   );

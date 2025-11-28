@@ -1,194 +1,223 @@
-import { useState } from "react";
-import { StyleSheet, View, TextInput } from "react-native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
-import { ScreenKeyboardAwareScrollView } from "@/components/ScreenKeyboardAwareScrollView";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  Alert,
+  Pressable,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 import { Button } from "@/components/Button";
+import { AvatarSelector } from "@/components/AvatarSelector";
+import { StatCard } from "@/components/StatCard";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, Typography } from "@/constants/theme";
-import Spacer from "@/components/Spacer";
-import type { ProfileStackParamList } from "@/navigation/ProfileStackNavigator";
+import { Spacing, BorderRadius } from "@/constants/theme";
+import { BEACHES, MOUNTAINS } from "@/data/destinations";
+import {
+  getVisitedBeaches,
+  getVisitedMountains,
+  getUserProfile,
+  saveUserProfile,
+  clearAllData,
+  UserProfile,
+} from "@/utils/storage";
 
-type ProfileScreenProps = {
-  navigation: NativeStackNavigationProp<ProfileStackParamList, "Profile">;
-};
+export default function ProfileScreen() {
+  const { theme } = useTheme();
+  const [profile, setProfile] = useState<UserProfile>({
+    name: "Traveler",
+    avatarIndex: 0,
+  });
+  const [visitedBeachesCount, setVisitedBeachesCount] = useState(0);
+  const [visitedMountainsCount, setVisitedMountainsCount] = useState(0);
+  const [nameInput, setNameInput] = useState("");
 
-export default function ProfileScreen({ navigation }: ProfileScreenProps) {
-  const { theme, isDark } = useTheme();
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = () => {
-    console.log("Form submitted:", { name, email, password });
+  const loadData = async () => {
+    const [userProfile, visitedBeaches, visitedMountains] = await Promise.all([
+      getUserProfile(),
+      getVisitedBeaches(),
+      getVisitedMountains(),
+    ]);
+    setProfile(userProfile);
+    setNameInput(userProfile.name);
+    setVisitedBeachesCount(visitedBeaches.size);
+    setVisitedMountainsCount(visitedMountains.size);
   };
 
-  const inputStyle = [
-    styles.input,
-    {
-      backgroundColor: theme.backgroundDefault,
-      color: theme.text,
-    },
-  ];
+  const handleAvatarSelect = async (index: number) => {
+    const newProfile = { ...profile, avatarIndex: index };
+    setProfile(newProfile);
+    await saveUserProfile(newProfile);
+  };
+
+  const handleNameSave = async () => {
+    if (nameInput.trim()) {
+      const newProfile = { ...profile, name: nameInput.trim() };
+      setProfile(newProfile);
+      await saveUserProfile(newProfile);
+    }
+  };
+
+  const handleClearProgress = () => {
+    Alert.alert(
+      "Clear All Progress",
+      "This will reset all your visited beaches and mountains. This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: async () => {
+            await clearAllData();
+            setVisitedBeachesCount(0);
+            setVisitedMountainsCount(0);
+          },
+        },
+      ]
+    );
+  };
 
   return (
-    <ScreenKeyboardAwareScrollView>
+    <ScreenScrollView>
       <View style={styles.section}>
-        <ThemedText type="h1">Heading 1</ThemedText>
-        <ThemedText type="small" style={styles.meta}>
-          32px • Bold
+        <ThemedText type="h4" style={styles.sectionTitle}>
+          Choose Your Avatar
         </ThemedText>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText type="h2">Heading 2</ThemedText>
-        <ThemedText type="small" style={styles.meta}>
-          28px • Bold
-        </ThemedText>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText type="h3">Heading 3</ThemedText>
-        <ThemedText type="small" style={styles.meta}>
-          24px • Semi-Bold
-        </ThemedText>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText type="h4">Heading 4</ThemedText>
-        <ThemedText type="small" style={styles.meta}>
-          20px • Semi-Bold
-        </ThemedText>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText type="body">
-          Body text - This is the default text style for paragraphs and general
-          content.
-        </ThemedText>
-        <ThemedText type="small" style={styles.meta}>
-          16px • Regular
-        </ThemedText>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText type="small">
-          Small text - Used for captions, labels, and secondary information.
-        </ThemedText>
-        <ThemedText type="small" style={styles.meta}>
-          14px • Regular
-        </ThemedText>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText type="link">Link text - Interactive elements</ThemedText>
-        <ThemedText type="small" style={styles.meta}>
-          16px • Regular • Colored
-        </ThemedText>
-      </View>
-
-      <Spacer height={Spacing["4xl"]} />
-
-      <View style={styles.fieldContainer}>
-        <ThemedText type="small" style={styles.label}>
-          Name
-        </ThemedText>
-        <TextInput
-          style={inputStyle}
-          value={name}
-          onChangeText={setName}
-          placeholder="Enter your name"
-          placeholderTextColor={isDark ? "#9BA1A6" : "#687076"}
-          autoCapitalize="words"
-          returnKeyType="next"
+        <AvatarSelector
+          selectedIndex={profile.avatarIndex}
+          onSelect={handleAvatarSelect}
         />
       </View>
 
-      <Spacer height={Spacing.lg} />
-
-      <View style={styles.fieldContainer}>
-        <ThemedText type="small" style={styles.label}>
-          Email
+      <View style={styles.section}>
+        <ThemedText type="h4" style={styles.sectionTitle}>
+          Your Name
         </ThemedText>
-        <TextInput
-          style={inputStyle}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="your.email@example.com"
-          placeholderTextColor={isDark ? "#9BA1A6" : "#687076"}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          returnKeyType="next"
+        <View style={styles.nameInputRow}>
+          <TextInput
+            style={[
+              styles.nameInput,
+              {
+                backgroundColor: theme.backgroundDefault,
+                color: theme.text,
+                borderColor: theme.border,
+              },
+            ]}
+            value={nameInput}
+            onChangeText={setNameInput}
+            placeholder="Enter your name"
+            placeholderTextColor={theme.textSecondary}
+            onBlur={handleNameSave}
+            returnKeyType="done"
+            onSubmitEditing={handleNameSave}
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <ThemedText type="h4" style={styles.sectionTitle}>
+          Travel Progress
+        </ThemedText>
+        <StatCard
+          title="Beaches Visited"
+          visited={visitedBeachesCount}
+          total={BEACHES.length}
+          icon="sun"
+          color={theme.primary}
+        />
+        <StatCard
+          title="Mountains Conquered"
+          visited={visitedMountainsCount}
+          total={MOUNTAINS.length}
+          icon="triangle"
+          color={theme.secondary}
         />
       </View>
 
-      <Spacer height={Spacing.lg} />
-
-      <View style={styles.fieldContainer}>
-        <ThemedText type="small" style={styles.label}>
-          Password
+      <View style={styles.section}>
+        <ThemedText type="h4" style={styles.sectionTitle}>
+          Settings
         </ThemedText>
-        <TextInput
-          style={inputStyle}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Enter a password"
-          placeholderTextColor={isDark ? "#9BA1A6" : "#687076"}
-          secureTextEntry
-          autoCapitalize="none"
-          returnKeyType="next"
-        />
+        <Pressable
+          onPress={handleClearProgress}
+          style={({ pressed }) => [
+            styles.dangerButton,
+            {
+              backgroundColor: theme.backgroundDefault,
+              borderColor: "#EF4444",
+              opacity: pressed ? 0.8 : 1,
+            },
+          ]}
+        >
+          <ThemedText type="body" style={styles.dangerButtonText}>
+            Clear All Progress
+          </ThemedText>
+        </Pressable>
       </View>
 
-      <Spacer height={Spacing.lg} />
-
-      <Button onPress={handleSubmit}>Submit Form</Button>
-
-      <Spacer height={Spacing["2xl"]} />
-
-      <ThemedText type="h3" style={styles.sectionTitle}>
-        Testing
-      </ThemedText>
-      <Spacer height={Spacing.md} />
-      <Button
-        onPress={() => navigation.navigate("Crash")}
-        style={styles.crashButton}
-      >
-        Crash App
-      </Button>
-    </ScreenKeyboardAwareScrollView>
+      <View style={styles.footer}>
+        <ThemedText
+          type="small"
+          style={[styles.footerText, { color: theme.textSecondary }]}
+        >
+          India Explorer v1.0
+        </ThemedText>
+        <ThemedText
+          type="small"
+          style={[styles.footerText, { color: theme.textSecondary }]}
+        >
+          Track your adventures across India
+        </ThemedText>
+      </View>
+    </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: Spacing["3xl"],
-  },
-  meta: {
-    opacity: 0.5,
-    marginTop: Spacing.sm,
-  },
-  fieldContainer: {
-    width: "100%",
-  },
-  label: {
-    marginBottom: Spacing.sm,
-    fontWeight: "600",
-    opacity: 0.8,
-  },
-  input: {
-    height: Spacing.inputHeight,
-    borderWidth: 0,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.lg,
-    fontSize: Typography.body.fontSize,
+    marginBottom: Spacing["2xl"],
   },
   sectionTitle: {
-    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
-  crashButton: {
-    backgroundColor: "#FF3B30",
+  nameInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  nameInput: {
+    flex: 1,
+    height: Spacing.inputHeight,
+    borderWidth: 1,
+    borderRadius: BorderRadius.xs,
+    paddingHorizontal: Spacing.lg,
+    fontSize: 16,
+  },
+  dangerButton: {
+    height: Spacing.buttonHeight,
+    borderRadius: BorderRadius.xs,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dangerButtonText: {
+    color: "#EF4444",
+    fontWeight: "600",
+  },
+  footer: {
+    alignItems: "center",
+    paddingTop: Spacing["2xl"],
+    paddingBottom: Spacing.xl,
+  },
+  footerText: {
+    marginBottom: Spacing.xs,
   },
 });

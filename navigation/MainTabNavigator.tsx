@@ -3,12 +3,14 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet } from "react-native";
-import HomeStackNavigator from "@/navigation/HomeStackNavigator";
+import BeachesStackNavigator from "@/navigation/BeachesStackNavigator";
+import MountainsStackNavigator from "@/navigation/MountainsStackNavigator";
 import ProfileStackNavigator from "@/navigation/ProfileStackNavigator";
 import { useTheme } from "@/hooks/useTheme";
 
 export type MainTabParamList = {
-  HomeTab: undefined;
+  BeachesTab: undefined;
+  MountainsTab: undefined;
   ProfileTab: undefined;
 };
 
@@ -19,7 +21,7 @@ export default function MainTabNavigator() {
 
   return (
     <Tab.Navigator
-      initialRouteName="HomeTab"
+      initialRouteName="BeachesTab"
       screenOptions={{
         tabBarActiveTintColor: theme.tabIconSelected,
         tabBarInactiveTintColor: theme.tabIconDefault,
@@ -44,12 +46,22 @@ export default function MainTabNavigator() {
       }}
     >
       <Tab.Screen
-        name="HomeTab"
-        component={HomeStackNavigator}
+        name="BeachesTab"
+        component={BeachesStackNavigator}
         options={{
-          title: "Home",
+          title: "Beaches",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="home" size={size} color={color} />
+            <Feather name="sun" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="MountainsTab"
+        component={MountainsStackNavigator}
+        options={{
+          title: "Mountains",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="triangle" size={size} color={color} />
           ),
         }}
       />
