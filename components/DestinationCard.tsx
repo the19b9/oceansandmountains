@@ -6,8 +6,8 @@ import Animated, {
   withSpring,
   WithSpringConfig,
 } from "react-native-reanimated";
+import { Feather } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
-import { CheckBox } from "@/components/CheckBox";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
@@ -17,6 +17,7 @@ interface DestinationCardProps {
   region: string;
   visited: boolean;
   onToggleVisited: () => void;
+  onPress?: () => void;
   altitude?: string;
 }
 
@@ -35,6 +36,7 @@ export function DestinationCard({
   region,
   visited,
   onToggleVisited,
+  onPress,
   altitude,
 }: DestinationCardProps) {
   const { theme } = useTheme();
@@ -54,7 +56,7 @@ export function DestinationCard({
 
   return (
     <AnimatedPressable
-      onPress={onToggleVisited}
+      onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[
@@ -67,9 +69,12 @@ export function DestinationCard({
       ]}
     >
       <View style={styles.content}>
-        <ThemedText type="body" style={styles.name}>
-          {name}
-        </ThemedText>
+        <View style={styles.nameRow}>
+          <ThemedText type="body" style={styles.name}>
+            {name}
+          </ThemedText>
+          <Feather name="chevron-right" size={16} color={theme.textSecondary} />
+        </View>
         <View style={styles.infoRow}>
           <ThemedText
             type="small"
@@ -97,11 +102,20 @@ export function DestinationCard({
           ) : null}
         </View>
       </View>
-      <CheckBox
-        checked={visited}
-        onToggle={onToggleVisited}
-        accessibilityLabel={visited ? `${name} visited` : `${name} not visited`}
-      />
+      <Pressable
+        onPress={(e) => {
+          e.stopPropagation();
+          onToggleVisited();
+        }}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <View
+          pointerEvents="none"
+          style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, alignItems: "center", justifyContent: "center", backgroundColor: visited ? theme.success : "transparent", borderColor: visited ? theme.success : theme.border }}
+        >
+          {visited ? <Feather name="check" size={16} color="#FFFFFF" /> : null}
+        </View>
+      </Pressable>
     </AnimatedPressable>
   );
 }
@@ -119,9 +133,15 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: Spacing.md,
   },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: Spacing.xs,
+  },
   name: {
     fontWeight: "600",
-    marginBottom: Spacing.xs,
+    flex: 1,
   },
   infoRow: {
     flexDirection: "row",

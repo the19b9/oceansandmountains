@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { View, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterChip } from "@/components/FilterChip";
@@ -16,19 +18,24 @@ import {
   State,
 } from "@/data/destinations";
 import { getVisitedBeaches, saveVisitedBeaches } from "@/utils/storage";
+import { BeachesStackParamList } from "@/navigation/BeachesStackNavigator";
 
 type FilterType = "All" | Region | State;
+type NavigationProp = NativeStackNavigationProp<BeachesStackParamList, "Beaches">;
 
 export default function BeachesScreen() {
   const { theme } = useTheme();
+  const navigation = useNavigation<NavigationProp>();
   const [visitedBeaches, setVisitedBeaches] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadVisitedBeaches();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadVisitedBeaches();
+    }, [])
+  );
 
   const loadVisitedBeaches = async () => {
     const visited = await getVisitedBeaches();
@@ -48,6 +55,16 @@ export default function BeachesScreen() {
       return newSet;
     });
   }, []);
+
+  const navigateToDetail = useCallback(
+    (beach: Beach) => {
+      navigation.navigate("DestinationDetail", {
+        destination: beach,
+        type: "beach",
+      });
+    },
+    [navigation]
+  );
 
   const filters: FilterType[] = useMemo(
     () => ["All", ...BEACH_REGIONS, ...BEACH_STATES],
@@ -85,9 +102,10 @@ export default function BeachesScreen() {
         region={item.region}
         visited={visitedBeaches.has(item.id)}
         onToggleVisited={() => toggleVisited(item.id)}
+        onPress={() => navigateToDetail(item)}
       />
     ),
-    [visitedBeaches, toggleVisited]
+    [visitedBeaches, toggleVisited, navigateToDetail]
   );
 
   const renderHeader = useCallback(

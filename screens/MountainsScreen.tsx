@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { View, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ScreenFlatList } from "@/components/ScreenFlatList";
 import { SearchBar } from "@/components/SearchBar";
 import { FilterChip } from "@/components/FilterChip";
@@ -16,19 +18,24 @@ import {
   State,
 } from "@/data/destinations";
 import { getVisitedMountains, saveVisitedMountains } from "@/utils/storage";
+import { MountainsStackParamList } from "@/navigation/MountainsStackNavigator";
 
 type FilterType = "All" | Region | State;
+type NavigationProp = NativeStackNavigationProp<MountainsStackParamList, "Mountains">;
 
 export default function MountainsScreen() {
   const { theme } = useTheme();
+  const navigation = useNavigation<NavigationProp>();
   const [visitedMountains, setVisitedMountains] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadVisitedMountains();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadVisitedMountains();
+    }, [])
+  );
 
   const loadVisitedMountains = async () => {
     const visited = await getVisitedMountains();
@@ -48,6 +55,16 @@ export default function MountainsScreen() {
       return newSet;
     });
   }, []);
+
+  const navigateToDetail = useCallback(
+    (mountain: Mountain) => {
+      navigation.navigate("DestinationDetail", {
+        destination: mountain,
+        type: "mountain",
+      });
+    },
+    [navigation]
+  );
 
   const filters: FilterType[] = useMemo(
     () => ["All", ...MOUNTAIN_REGIONS, ...MOUNTAIN_STATES],
@@ -86,9 +103,10 @@ export default function MountainsScreen() {
         altitude={item.altitude}
         visited={visitedMountains.has(item.id)}
         onToggleVisited={() => toggleVisited(item.id)}
+        onPress={() => navigateToDetail(item)}
       />
     ),
-    [visitedMountains, toggleVisited]
+    [visitedMountains, toggleVisited, navigateToDetail]
   );
 
   const renderHeader = useCallback(
