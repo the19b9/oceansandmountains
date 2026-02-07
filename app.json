@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "India Explorer",
-    "slug": "india-explorer",
+    "name": "Oceans & Mountains",
+    "slug": "oceansmountains",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "indiaexplorer",
+    "scheme": "oceansmountains",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.indiaexplorer.app"
+      "bundleIdentifier": "com.oceansmountains.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.indiaexplorer.app"
+      "package": "com.oceansmountains.app"
     },
     "web": {
       "output": "single",
